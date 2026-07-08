@@ -8,7 +8,7 @@ const server = http.createServer(app);
 // Initialize Socket.IO with CORS
 const io = new Server(server, {
     cors: {
-        origin: "*", // For development - restrict in production
+        origin: "*", // Allow all origins for now
         methods: ["GET", "POST"],
         credentials: true
     }
@@ -16,29 +16,30 @@ const io = new Server(server, {
 
 // Serve static files
 app.use(express.static(__dirname));
+
+// ✅ ROOT PATH - This fixes the "Not Found" error!
 app.get('/', (req, res) => {
     res.send('🚀 Skymingle Signaling Server is running!');
 });
-const PORT = process.env.PORT || 3000;
 
-// Store active rooms and users
-const rooms = new Map();
-const users = new Map();
-
-// Basic health check
+// Health check endpoint
 app.get('/health', (req, res) => {
     res.json({
         status: 'ok',
         connections: io.engine.clientsCount,
-        rooms: rooms.size,
+        rooms: 0,
         timestamp: new Date().toISOString()
     });
 });
 
+const PORT = process.env.PORT || 3000;
+
+// Store active rooms and users
+const rooms = new Map();
+
 // Socket.IO Connection Event
 io.on('connection', (socket) => {
     console.log(`🔗 User connected: ${socket.id}`);
-    users.set(socket.id, { id: socket.id, connectedAt: new Date() });
 
     // Join a room
     socket.on('join-room', (roomId) => {
@@ -78,6 +79,16 @@ io.on('connection', (socket) => {
         });
     });
 
+    // Get room info on demand
+    socket.on('get-room-info', (roomId) => {
+        const roomUsers = Array.from(rooms.get(roomId) || []);
+        socket.emit('room-info', {
+            roomId,
+            users: roomUsers,
+            count: roomUsers.length
+        });
+    });
+
     // Handle signaling data (WebRTC)
     socket.on('signal', (data) => {
         const { roomId, targetUserId, signalData } = data;
@@ -100,7 +111,6 @@ io.on('connection', (socket) => {
     // Handle disconnection
     socket.on('disconnect', () => {
         console.log(`🔗 User disconnected: ${socket.id}`);
-        users.delete(socket.id);
         
         // Remove from all rooms
         rooms.forEach((userSet, roomId) => {
@@ -108,6 +118,14 @@ io.on('connection', (socket) => {
                 userSet.delete(socket.id);
                 if (userSet.size === 0) {
                     rooms.delete(roomId);
+                } else {
+                    // Notify room about user leaving with updated list
+                    const roomUsers = Array.from(userSet);
+                    io.to(roomId).emit('room-info', {
+                        roomId,
+                        users: roomUsers,
+                        count: roomUsers.length
+                    });
                 }
                 
                 // Notify others
@@ -121,28 +139,14 @@ io.on('connection', (socket) => {
                 });
             }
         });
-        
-        updateRoomInfo();
     });
 });
-
-// Helper function to update room info
-function updateRoomInfo() {
-    rooms.forEach((userSet, roomId) => {
-        io.to(roomId).emit('room-info', {
-            roomId,
-            users: Array.from(userSet),
-            count: userSet.size
-        });
-    });
-}
 
 // Start the server
 server.listen(PORT, () => {
     console.log(`🚀 Skymingle Signaling Server running on port ${PORT}`);
-    console.log(`📡 WebSocket endpoint: ws://localhost:${PORT}`);
-    console.log(`🌐 HTTP endpoint: http://localhost:${PORT}`);
-    console.log(`👥 Ready for connections...`);
+    console.log(`📡 WebSocket endpoint: ${PORT}`);
+    console.log(`🌐 Server is ready for connections`);
 });
 
 // Graceful shutdown
