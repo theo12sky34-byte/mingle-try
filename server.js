@@ -16,7 +16,9 @@ const io = new Server(server, {
 
 // Serve static files
 app.use(express.static(__dirname));
-
+app.get('/', (req, res) => {
+    res.send('🚀 Skymingle Signaling Server is running!');
+});
 const PORT = process.env.PORT || 3000;
 
 // Store active rooms and users
