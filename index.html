@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Skymingle — Local Chat</title>
+  <meta name="description" content="Skymingle is a lightweight, privacy-first local chat and video demo—multi-room, browser-only, and works across tabs. Ideal for quick peer-to-peer discussions and prototyping." />
+  <meta name="keywords" content="Skymingle, chat, WebRTC, BroadcastChannel, local chat, multi-room chat, peer-to-peer, web app" />
+  <meta name="robots" content="index,follow" />
+  <link rel="canonical" href="http://localhost:8000/skymingle%20site.html" />
+  <!-- Verification placeholders: paste your verification tokens here when registering with search engines -->
+  <!-- <meta name="google-site-verification" content="PASTE_GOOGLE_TOKEN_HERE" /> -->
+  <!-- <meta name="bingbot" content="PASTE_BING_TOKEN_HERE" /> -->
+
+  <!-- Open Graph / Social -->
+  <meta property="og:title" content="Skymingle — Local Chat" />
+  <meta property="og:description" content="Privacy-first browser chat and video demo. Create rooms, pick nicknames, and chat in your browser." />
+  <meta property="og:type" content="website" />
+  <meta property="og:url" content="http://localhost:8000/skymingle%20site.html" />
+  <meta property="og:image" content="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0nMTI4JyBoZWlnaHQ9JzcwJyB4bWxucz0naHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmcnPjxzdHlsZT4uc3Qwe2ZpbGw6I2ZmZjt9PC9zdHlsZT48cmVjdCB3aWR0aD0nMTI4JyBoZWlnaHQ9JzcwJyBmaWxsPScjMzhlZGM4Jy8+PHRleHQgeD0nNCcgeT0nNDUnIGNsYXNzPSdzdDAnIHN0eWxlPSdmaWxsOiMwMDA7Zm9udC1zaXplOjE2cHg7Zm9udC1mYW1pbHk6QXJpYWwsc2Fucy1zZXJpZicsIGJvbGQ7Jz5Ta3ltbGluZTwvdGV4dD48L3N2Zz4=" />
+  <meta name="twitter:card" content="summary_large_image" />
+
+  <!-- Basic favicon (SVG data URI) -->
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Crect width='100%25' height='100%25' fill='%2338bdf8'/%3E%3Ctext x='50%25' y='55%25' font-size='16' text-anchor='middle' fill='white' font-family='Arial'%3ES%3C/text%3E%3C/svg%3E" />
+   <link rel="stylesheet" href="css/style.css">
+  <!-- Structured data for search engines -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "WebSite",
+    "name": "Skymingle",
+    "url": "http://localhost:8000/skymingle%20site.html",
+    "description": "Skymingle is a lightweight, privacy-first local chat and video demo—multi-room, browser-only.",
+    "potentialAction": {
+      "@type": "SearchAction",
+      "target": "http://localhost:8000/skymingle%20site.html?q={search_term_string}",
+      "query-input": "required name=search_term_string"
+    }
+  }
+  </script>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <main class="page">
+    <section class="chat-app" aria-label="Chat application">
+      <header class="chat-header">
+        <h1>Skymingle — Local Chat Demo</h1>
+        <p>Create rooms, pick a nickname, and chat. Syncs across tabs using BroadcastChannel. Messages persist per room.</p>
+        <div class="sidebar">
+          <div class="input-inline">
+            <label for="nickname" style="color:var(--muted);margin-right:6px">Name</label>
+            <input id="nickname" class="nickname-input" placeholder="Your name" maxlength="32" />
+          </div>
+          <div class="input-inline">
+            <label for="rooms" style="color:var(--muted);margin-right:6px">Room</label>
+            <select id="rooms" class="rooms-select"></select>
+            <input id="newRoom" class="rooms-select" placeholder="New room name" />
+            <button id="createRoom" class="rooms-select">Create</button>
+          </div>
+          <div class="input-inline">
+            <button id="startVideo" class="rooms-select" style="cursor:pointer">Start Video Call</button>
+            <button id="stopVideo" class="rooms-select" style="cursor:pointer;display:none">Stop Video</button>
+          </div>
+          <div class="input-inline" style="margin-left:8px;align-items:center">
+            <input id="signalUrl" class="rooms-select" placeholder="ws://host:3000" style="min-width:220px" />
+            <button id="connectSignal" class="rooms-select" style="cursor:pointer">Connect Signal</button>
+            <button id="copySignal" class="rooms-select" style="cursor:pointer">Copy URL</button>
+            <span id="signalStatus" style="margin-left:8px;color:var(--muted);font-size:0.9rem">Signal: disconnected</span>
+            <span id="remoteCount" style="margin-left:12px;color:var(--muted);font-size:0.9rem">Remotes: 0</span>
+          </div>
+          <div id="users" class="users-list" title="Users in this room">Users: —</div>
+        </div>
+
+        <div class="info-panel" id="siteInfo">
+          <h3>About Skymingle</h3>
+          <p>Skymingle is a privacy-minded, browser-native chat and video demo for small groups and prototyping. It uses localStorage for persistence, BroadcastChannel for cross-tab real-time sync, and WebRTC for peer-to-peer video calls.</p>
+
+          <div class="info-features">
+            <div>
+              <strong>Multi-room Chat</strong>
+              <p>Create and switch between rooms. Messages are stored per room locally.</p>
+            </div>
+            <div>
+              <strong>In-Browser Video</strong>
+              <p>Peer-to-peer video powered by WebRTC — no central server required for local testing.</p>
+            </div>
+            <div>
+              <strong>Privacy-first</strong>
+              <p>All data remains in the browser (localStorage). No external servers are contacted unless you enable them.</p>
+            </div>
+            <div>
+              <strong>Search-ready</strong>
+              <p>Structured data and meta tags included for better indexing and preview on social platforms.</p>
+            </div>
+          </div>
+
+          <h3 style="margin-top:12px">How to Use</h3>
+          <ol>
+            <li>Set a nickname and create or select a room.</li>
+            <li>Send messages — they persist per room and sync across your browser tabs.</li>
+            <li>Start a video call to share camera and audio with peers in the same room (tabs only for now).</li>
+          </ol>
+
+          <h3 style="margin-top:12px">Privacy & Verification</h3>
+          <p>Skymingle runs entirely in your browser. When you register your site with Google/Bing, paste the provided verification tokens into the head meta placeholders. For production, host the files under a stable HTTPS URL and submit a sitemap.</p>
+        </div>
+      </header>
+
+      <div id="chatBody" class="chat-body" aria-live="polite"></div>
+      <div id="videoArea" style="padding:12px 20px;background:rgba(255,255,255,0.01);border-top:1px solid var(--border);display:none">
+        <div style="display:flex;gap:12px;align-items:flex-start;flex-wrap:wrap">
+          <video id="localVideo" autoplay muted playsinline style="width:220px;border-radius:12px;background:#000;display:none"></video>
+          <div id="remotes" style="display:flex;gap:12px;flex-wrap:wrap"></div>
+        </div>
+      </div>
+
+      <footer class="chat-footer">
+        <form id="chatForm" class="chat-form">
+          <textarea id="messageInput" name="message" placeholder="Send a message..." autocomplete="off" rows="2"></textarea>
+          <button type="submit">Send</button>
+        </form>
+        <div style="display:flex;gap:8px;align-items:center;margin-top:8px;">
+          <button id="clearRoom" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer">Clear Room</button>
+          <button id="exportRoom" style="background:transparent;border:1px solid var(--border);color:var(--muted);padding:6px 10px;border-radius:8px;cursor:pointer">Export JSON</button>
+          <div id="status" class="status">Ready to chat.</div>
+        </div>
+      </footer>
+    </section>
+  </main>
+<script src="http://localhost:3000/socket.io/socket.io.js"></script>
+<script src="js/webrtc.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>

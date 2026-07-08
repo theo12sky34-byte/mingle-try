@@ -1,0 +1,19 @@
+{
+  "name": "skymingle-signaling-server",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^5.2.1",
+    "socket.io": "^4.8.3",
+    "ws": "^8.13.0"
+  },
+  "description": "Minimal WebSocket broadcast signaling server used by Skymingle for cross-device WebRTC signaling.",
+  "main": "server.js",
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs"
+}
